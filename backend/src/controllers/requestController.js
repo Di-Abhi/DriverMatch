@@ -1,9 +1,5 @@
 const prisma = require('../lib/prisma');
 
-/**
- * Create a request (USER)
- * returns created request and matched drivers (simple match)
- */
 async function createRequest(req, res) {
   try {
     const userId = req.user.userId;
@@ -21,7 +17,6 @@ async function createRequest(req, res) {
 
     const request = await prisma.request.create({ data: requestData });
 
-    // Simple matching: online drivers with vehicleType and experience
     const where = {
       role: 'DRIVER',
       isOnline: true,
@@ -31,7 +26,7 @@ async function createRequest(req, res) {
 
     const drivers = await prisma.user.findMany({
       where,
-      take: 20,
+      take: 10,
       select: {
         id: true,
         name: true,
@@ -51,9 +46,6 @@ async function createRequest(req, res) {
   }
 }
 
-/**
- * User selects a driver for a request -> sets selectedDriverId + status PENDING
- */
 async function selectDriver(req, res) {
   try {
     const userId = req.user.userId;
@@ -78,9 +70,6 @@ async function selectDriver(req, res) {
   }
 }
 
-/**
- * Get request details (if accepted, include driver details)
- */
 async function getRequest(req, res) {
   try {
     const requestId = req.params.id;

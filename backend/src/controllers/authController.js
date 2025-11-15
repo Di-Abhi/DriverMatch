@@ -52,12 +52,11 @@ async function signup(req, res) {
 
     const token = signToken(user);
     
-    // Set HTTP-only cookie
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: process.env.NODE_ENV === 'production', 
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     const safeUser = { ...user, passwordHash: undefined };
@@ -81,12 +80,12 @@ async function login(req, res) {
 
     const token = signToken(user);
     
-    // Set HTTP-only cookie
+
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     const safeUser = { ...user, passwordHash: undefined };

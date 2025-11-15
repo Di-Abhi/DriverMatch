@@ -83,7 +83,6 @@ model Rating {
 enum Role {
   USER
   DRIVER
-  ADMIN
 }
 
 enum WorkType {

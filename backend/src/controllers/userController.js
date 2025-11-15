@@ -1,8 +1,5 @@
 const prisma = require('../lib/prisma');
 
-/**
- * Get user profile
- */
 async function getProfile(req, res) {
   try {
     const userId = req.user.userId;
@@ -16,7 +13,6 @@ async function getProfile(req, res) {
         phone: true,
         role: true,
         createdAt: true
-        // updatedAt: true
       }
     });
 
@@ -29,9 +25,6 @@ async function getProfile(req, res) {
   }
 }
 
-/**
- * Update user profile
- */
 async function updateProfile(req, res) {
   try {
     const userId = req.user.userId;
@@ -51,7 +44,6 @@ async function updateProfile(req, res) {
         phone: true,
         role: true,
         createdAt: true
-        // updatedAt: true
       }
     });
 
@@ -62,9 +54,6 @@ async function updateProfile(req, res) {
   }
 }
 
-/**
- * Get user requests
- */
 async function getUserRequests(req, res) {
   try {
     const userId = req.user.userId;

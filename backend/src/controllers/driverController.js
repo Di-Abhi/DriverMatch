@@ -1,8 +1,4 @@
 const prisma = require('../lib/prisma');
-
-/**
- * Get driver profile with vehicle and license details
- */
 async function getProfile(req, res) {
   try {
     const driverId = req.user.userId;
@@ -37,9 +33,6 @@ async function getProfile(req, res) {
   }
 }
 
-/**
- * Update driver profile
- */
 async function updateProfile(req, res) {
   try {
     const driverId = req.user.userId;
@@ -90,9 +83,6 @@ async function updateProfile(req, res) {
   }
 }
 
-/**
- * Get assigned requests for driver (PENDING or ACCEPTED)
- */
 async function getAssignedRequests(req, res) {
   try {
     const driverId = req.user.userId;
@@ -115,7 +105,6 @@ async function getAssignedRequests(req, res) {
       orderBy: { createdAt: 'desc' }
     });
 
-    // Map to match frontend expectations
     const mappedRequests = requests.map(r => ({
       id: r.id,
       userId: r.userId,
@@ -138,14 +127,11 @@ async function getAssignedRequests(req, res) {
   }
 }
 
-/**
- * Driver responds to assigned request: accept or reject
- */
 async function respondToRequest(req, res) {
   try {
     const driverId = req.user.userId;
     const requestId = req.params.id;
-    const { action } = req.body; // 'accept' | 'reject'
+    const { action } = req.body;
 
     const request = await prisma.request.findUnique({ where: { id: requestId } });
     if (!request) return res.status(404).json({ error: 'Request not found' });
@@ -172,9 +158,6 @@ async function respondToRequest(req, res) {
   }
 }
 
-/**
- * Toggle driver online/offline status
- */
 async function toggleOnline(req, res) {
   try {
     const driverId = req.user.userId;
@@ -197,9 +180,6 @@ async function toggleOnline(req, res) {
   }
 }
 
-/**
- * Search drivers (public endpoint)
- */
 async function searchDrivers(req, res) {
   try {
     const { vehicleType, minExperience } = req.query;
