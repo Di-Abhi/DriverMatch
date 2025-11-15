@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  phone            String?
+  role             Role      @default(USER)
+  createdAt        DateTime  @default(now())
+
+  // driver-specific
+  vehicleType      String?
+  vehicleModel     String?
+  vehicleNumber    String?
+  experienceYears  Int?      @default(0)
+  workType         WorkType?
+  licenseNo        String?
+  licenseUrl       String?
+  isOnline         Boolean   @default(false)
+  rating           Float?    @default(0)
+  ratingCount      Int       @default(0)
+
+  requestsCreated  Request[] @relation("user_requests")
+  requestsSelected Request[] @relation("driver_requests")
+
+  // Explicit rating relations (disambiguate two relations to Rating)
+  ratingsGiven     Rating[]  @relation("UserGivenRatings")
+  ratingsReceived  Rating[]  @relation("UserReceivedRatings")
+
+  @@map("users")
+}
+
+model Request {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation("user_requests", fields: [userId], references: [id])
+  selectedDriverId String?
+  selectedDriver   User?         @relation("driver_requests", fields: [selectedDriverId], references: [id])
+  status           RequestStatus @default(OPEN)
+  vehicleType      String?
+  minExperience    Int?
+  pickupAddress    String?
+  time             DateTime?
+  notes            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // <-- Added: ratings for this request
+  ratings          Rating[]      @relation("RequestRatings")
+
+  @@map("requests")
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  requestId  String
+  // Named relation to match Request.ratings
+  request    Request  @relation("RequestRatings", fields: [requestId], references: [id])
+
+  // rater: the user who gave the rating
+  raterId    String
+  rater      User     @relation("UserGivenRatings", fields: [raterId], references: [id])
+
+  // rated: the user who was rated
+  ratedId    String
+  rated      User     @relation("UserReceivedRatings", fields: [ratedId], references: [id])
+
+  stars      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@map("ratings")
+}
+
+enum Role {
+  USER
+  DRIVER
+  ADMIN
+}
+
+enum WorkType {
+  FULLTIME
+  PARTTIME
+}
+
+enum RequestStatus {
+  OPEN
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
