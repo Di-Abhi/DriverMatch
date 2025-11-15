@@ -12,7 +12,7 @@ const driverRoutes = require('./routes/driver');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173', // your frontend URL
+  origin: process.env.FRONTEND_ENDPOINT,
   credentials: true
 }));
 app.use(express.json());
@@ -23,7 +23,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/driver', driverRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
