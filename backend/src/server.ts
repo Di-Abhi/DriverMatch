@@ -1,27 +1,24 @@
-import dotenv from "dotenv";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { Database } from './config/database.config';
+import routes from './routes';
+
 dotenv.config();
-import express, { Application } from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import path from "path";
-import routes from "./routes/index";
 
-const app: Application = express();
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: process.env.FRONTEND_ENDPOINT,
-    credentials: true,
-  })
-);
-
+app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
 
-app.use("/api", routes);
+app.use('/api', routes);
 
-const PORT = process.env.PORT || 5000;
+const start = async () => {
+  await Database.connect();
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+};
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+start();

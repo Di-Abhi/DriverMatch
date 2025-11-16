@@ -7,94 +7,75 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserType {
+  CUSTOMER
+  DRIVER
+}
+
+enum ServiceType {
+  HOURLY
+  PART_TIME
+  FULL_TIME
+  WEEKLY
+  MONTHLY
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
-  id               String    @id @default(uuid())
-  name             String
-  email            String    @unique
-  passwordHash     String
-  phone            String?
-  role             Role      @default(USER)
-  createdAt        DateTime  @default(now())
+  id        String   @id @default(uuid())
+  clerkId   String?   @unique
+  email     String   @unique
+  name      String
+  phone     String?
+  password  String   
+  type      UserType
+  createdAt DateTime @default(now())
 
-  // driver-specific
-  vehicleType      String?
-  vehicleModel     String?
-  vehicleNumber    String?
-  experienceYears  Int?      @default(0)
-  workType         WorkType?
-  licenseNo        String?
-  licenseUrl       String?
-  isOnline         Boolean   @default(false)
-  rating           Float?    @default(0)
-  ratingCount      Int       @default(0)
-
-  requestsCreated  Request[] @relation("user_requests")
-  requestsSelected Request[] @relation("driver_requests")
-
-  // Explicit rating relations (disambiguate two relations to Rating)
-  ratingsGiven     Rating[]  @relation("UserGivenRatings")
-  ratingsReceived  Rating[]  @relation("UserReceivedRatings")
+  driverProfile    DriverProfile?
+  sentRequests     ServiceRequest[] @relation("CustomerRequests")
+  receivedRequests ServiceRequest[] @relation("DriverRequests")
 
   @@map("users")
 }
 
-model Request {
-  id               String        @id @default(uuid())
-  userId           String
-  user             User          @relation("user_requests", fields: [userId], references: [id])
-  selectedDriverId String?
-  selectedDriver   User?         @relation("driver_requests", fields: [selectedDriverId], references: [id])
-  status           RequestStatus @default(OPEN)
-  vehicleType      String?
-  minExperience    Int?
-  pickupAddress    String?
-  time             DateTime?
-  notes            String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+model DriverProfile {
+  id          String      @id @default(uuid())
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // <-- Added: ratings for this request
-  ratings          Rating[]      @relation("RequestRatings")
+  serviceType ServiceType
+  rate        Float
+  experience  Int
+  location    String
+  bio         String?
 
-  @@map("requests")
+  isAvailable Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  @@map("driver_profiles")
 }
 
-model Rating {
-  id         String   @id @default(uuid())
-  requestId  String
-  // Named relation to match Request.ratings
-  request    Request  @relation("RequestRatings", fields: [requestId], references: [id])
+model ServiceRequest {
+  id         String        @id @default(uuid())
 
-  // rater: the user who gave the rating
-  raterId    String
-  rater      User     @relation("UserGivenRatings", fields: [raterId], references: [id])
+  customerId String
+  customer   User          @relation("CustomerRequests", fields: [customerId], references: [id])
 
-  // rated: the user who was rated
-  ratedId    String
-  rated      User     @relation("UserReceivedRatings", fields: [ratedId], references: [id])
+  driverId   String
+  driver     User          @relation("DriverRequests", fields: [driverId], references: [id])
 
-  stars      Int
-  comment    String?
-  createdAt  DateTime @default(now())
+  serviceType ServiceType
+  location    String
+  message     String?
 
-  @@map("ratings")
-}
+  status      RequestStatus @default(PENDING)
 
-enum Role {
-  USER
-  DRIVER
-}
+  createdAt   DateTime      @default(now())
 
-enum WorkType {
-  FULLTIME
-  PARTTIME
-}
-
-enum RequestStatus {
-  OPEN
-  PENDING
-  ACCEPTED
-  REJECTED
-  COMPLETED
-  CANCELLED
+  @@map("service_requests")
 }
