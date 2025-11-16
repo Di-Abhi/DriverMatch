@@ -1,27 +1,12 @@
 import { Router } from "express";
 import upload from "../middleware/upload";
 import { authMiddleware } from "../middleware/auth";
-import AuthController from "../controllers/authController";
+import * as authController from "../controllers/authController";
 
-class AuthRoutes {
-  public router: Router;
+const router = Router();
 
-  constructor() {
-    this.router = Router();
-    this.setupRoutes();
-  }
+router.post('/signup', upload.single('licensePhoto'), authController.signup);
+router.post('/login', authController.login);
+router.post('/logout', authMiddleware, authController.logout);
 
-  private setupRoutes() {
-    this.router.post(
-      "/signup",
-      upload.single("licensePhoto"),
-      AuthController.signup
-    );
-
-    this.router.post("/login", AuthController.login);
-
-    this.router.post("/logout", authMiddleware, AuthController.logout);
-  }
-}
-
-export default new AuthRoutes().router;
+export default router;
