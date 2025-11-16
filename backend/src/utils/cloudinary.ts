@@ -1,8 +1,10 @@
-const cloudinary = require("../lib/config");
-const streamifier = require("streamifier");
+import cloudinary from "../lib/config";
+import streamifier from "streamifier";
 
-
-function uploadBufferToCloudinary(buffer, folder = "drivematch/licenses") {
+export function uploadBufferToCloudinary(
+  buffer: Buffer,
+  folder: string = "drivematch/licenses"
+): Promise<any> {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       { folder },
@@ -15,7 +17,3 @@ function uploadBufferToCloudinary(buffer, folder = "drivematch/licenses") {
     streamifier.createReadStream(buffer).pipe(uploadStream);
   });
 }
-
-module.exports = {
-  uploadBufferToCloudinary,
-};

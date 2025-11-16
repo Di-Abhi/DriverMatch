@@ -1,7 +1,8 @@
-const express = require('express');
-const router = express.Router();
-const { authMiddleware, requireRole } = require('../middleware/auth');
-const driverController = require('../controllers/driverController');
+import { Router } from "express";
+import { authMiddleware, requireRole } from "../middleware/auth";
+import * as driverController from "../controllers/driverController";
+
+const router = Router();
 
 router.get('/profile', authMiddleware, requireRole('DRIVER'), driverController.getProfile);
 router.put('/profile', authMiddleware, requireRole('DRIVER'), driverController.updateProfile);
@@ -10,4 +11,4 @@ router.post('/:id/driver-response', authMiddleware, requireRole('DRIVER'), drive
 router.post('/toggle-online', authMiddleware, requireRole('DRIVER'), driverController.toggleOnline);
 router.get('/search', driverController.searchDrivers);
 
-module.exports = router;
+export default router;
