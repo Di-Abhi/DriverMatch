@@ -1,24 +1,53 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { Database } from './config/database.config';
-import routes from './routes';
+import { UserRoutes } from './routes/userRoutes';
+import { DriverRoutes } from './routes/driverRoutes';
+import { BookingRoutes } from './routes/bookingRoutes';
+import { CloudinaryConfig } from './config/cloudinary';
 
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+class Server {
+  private app = express();
+  private port = process.env.PORT || 5000;
 
-app.use(cors());
-app.use(express.json());
+  constructor() {
+    this.initializeMiddlewares();
+    this.initializeRoutes();
+    CloudinaryConfig.initialize();
+  }
 
-app.use('/api', routes);
+  private initializeMiddlewares() {
+    this.app.use(cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+    this.app.use(express.json());
+  }
 
-const start = async () => {
-  await Database.connect();
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-};
+  private initializeRoutes() {
+    const userRoutes = new UserRoutes();
+    const driverRoutes = new DriverRoutes();
+    const bookingRoutes = new BookingRoutes();
 
-start();
+    this.app.use('/api/users', userRoutes.router);
+    this.app.use('/api/drivers', driverRoutes.router);
+    this.app.use('/api/bookings', bookingRoutes.router);
+
+    this.app.get('/health', (req, res) => {
+      res.json({ status: 'ok' });
+    });
+  }
+
+  public start() {
+    this.app.listen(this.port, () => {
+      console.log(`Server running on port ${this.port}`);
+    });
+  }
+}
+
+const server = new Server();
+server.start();

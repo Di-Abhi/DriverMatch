@@ -1,56 +1,49 @@
 import { Request, Response } from 'express';
-import { DriverService } from '../services/DriverService';
-import { UserRepository } from '../repositories/UserRepository';
+import { DriverService } from '../services/driverService';
 
 export class DriverController {
-  static async createProfile(req: Request, res: Response) {
-    try {
-      // @ts-ignore
-      const clerkId = req.auth.userId;
-      const user = await UserRepository.findByClerkId(clerkId);
-      if (!user) throw new Error('User not found');
+  private driverService = new DriverService();
 
-      const profile = await DriverService.createProfile(user.id, req.body);
-      res.status(201).json({ success: true, data: profile });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
+  async register(req: Request, res: Response) {
+    try {
+      const { clerkId, name, email, phone, licenseNo } = req.body;
+      const licenseFile = req.file;
+
+      if (!licenseFile) {
+        return res.status(400).json({ error: 'License file is required' });
+      }
+
+      const driver = await this.driverService.createDriver({
+        clerkId,
+        name,
+        email,
+        phone,
+        licenseNo,
+        licenseFile
+      });
+
+      res.status(201).json(driver);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create driver' });
     }
   }
 
-  static async updateProfile(req: Request, res: Response) {
+  async getProfile(req: Request, res: Response) {
     try {
-      // @ts-ignore
-      const clerkId = req.auth.userId;
-      const user = await UserRepository.findByClerkId(clerkId);
-      if (!user) throw new Error('User not found');
-
-      const profile = await DriverService.updateProfile(user.id, req.body);
-      res.json({ success: true, data: profile });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
+      const { clerkUserId } = req.body;
+      const driver = await this.driverService.getDriverByClerkId(clerkUserId);
+      res.json(driver);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get driver profile' });
     }
   }
 
-  static async searchDrivers(req: Request, res: Response) {
+  async getAllDrivers(req: Request, res: Response) {
     try {
-      const drivers = await DriverService.searchDrivers(req.query);
-      res.json({ success: true, data: drivers });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
-    }
-  }
-
-  static async toggleAvailability(req: Request, res: Response) {
-    try {
-      // @ts-ignore
-      const clerkId = req.auth.userId;
-      const user = await UserRepository.findByClerkId(clerkId);
-      if (!user) throw new Error('User not found');
-
-      const profile = await DriverService.toggleAvailability(user.id, req.body.isAvailable);
-      res.json({ success: true, data: profile });
-    } catch (error: any) {
-      res.status(400).json({ success: false, message: error.message });
+      const drivers = await this.driverService.getAllDrivers();
+      res.json(drivers);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get drivers' });
     }
   }
 }

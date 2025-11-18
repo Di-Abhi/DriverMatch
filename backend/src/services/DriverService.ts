@@ -1,35 +1,48 @@
-import { DriverRepository } from '../repositories/DriverRepository';
-import { DriverProfile } from '../entities/DriverProfile';
+import { PrismaClient } from '@prisma/client';
+import { v2 as cloudinary } from 'cloudinary';
+
+const prisma = new PrismaClient();
 
 export class DriverService {
-  static async createProfile(userId: string, data: {
-    serviceType: 'HOURLY' | 'PART_TIME' | 'FULL_TIME' | 'WEEKLY' | 'MONTHLY';
-    rate: number;
-    experience: number;
-    location: string;
-    bio?: string;
-  }): Promise<DriverProfile> {
-    const existing = await DriverRepository.findByUserId(userId);
-    if (existing) throw new Error('Driver profile already exists');
-    if (data.rate <= 0) throw new Error('Rate must be greater than 0');
+  async createDriver(data: {
+    clerkId: string;
+    name: string;
+    email: string;
+    phone: string;
+    licenseNo: string;
+    licenseFile: Express.Multer.File;
+  }) {
+    const uploadResult = await cloudinary.uploader.upload(data.licenseFile.path, {
+      folder: 'driver_licenses'
+    });
 
-    return DriverRepository.create({ userId, ...data });
+    return await prisma.driver.create({
+      data: {
+        clerkId: data.clerkId,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        licenseNo: data.licenseNo,
+        licenseUrl: uploadResult.secure_url
+      }
+    });
   }
 
-  static async updateProfile(userId: string, data: any): Promise<DriverProfile> {
-    const existing = await DriverRepository.findByUserId(userId);
-    if (!existing) throw new Error('Driver profile not found');
-    if (data.rate && data.rate <= 0) throw new Error('Rate must be greater than 0');
-
-    return DriverRepository.update(userId, data);
+  async getDriverByClerkId(clerkId: string) {
+    return await prisma.driver.findUnique({
+      where: { clerkId }
+    });
   }
 
-  static async searchDrivers(filters: any): Promise<any[]> {
-    return DriverRepository.search(filters);
+  async getAllDrivers() {
+    return await prisma.driver.findMany({
+      where: { available: true }
+    });
   }
 
-
-  static async toggleAvailability(userId: string, isAvailable: boolean): Promise<DriverProfile> {
-    return DriverRepository.update(userId, { isAvailable });
+  async getDriverById(id: string) {
+    return await prisma.driver.findUnique({
+      where: { id }
+    });
   }
 }
