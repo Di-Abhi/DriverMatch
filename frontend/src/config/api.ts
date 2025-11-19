@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export class ApiConfig {
+export default class ApiConfig {
   private static instance = axios.create({
     baseURL: import.meta.env.VITE_API_URL
   });
