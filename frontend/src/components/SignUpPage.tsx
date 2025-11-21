@@ -1,17 +1,10 @@
-import React from "react";
 import { SignUp } from "@clerk/clerk-react";
 
-const SignUpPage=()=> {
+function SignUpPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 
-                    bg-gradient-to-br from-black via-gray-900 to-gray-800">
-
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-black via-gray-900 to-gray-800">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2
-          className="text-center text-4xl font-extrabold 
-                     bg-gradient-to-r from-purple-400 to-cyan-400
-                     text-transparent bg-clip-text drop-shadow-lg mb-10"
-        >
+        <h2 className="text-center text-4xl font-extrabold bg-gradient-to-r from-purple-400 to-cyan-400 text-transparent bg-clip-text drop-shadow-lg mb-10">
           Create Your Account
         </h2>
 
@@ -20,8 +13,7 @@ const SignUpPage=()=> {
             appearance={{
               elements: {
                 rootBox: "mx-auto",
-                card:
-                  "shadow-2xl rounded-xl bg-white/5 backdrop-blur-xl border border-white/10",
+                card: "shadow-2xl rounded-xl bg-white/5 backdrop-blur-xl border border-white/10",
               },
             }}
             fallbackRedirectUrl="/user-type"
@@ -33,4 +25,4 @@ const SignUpPage=()=> {
   );
 }
 
-export default SignUpPage
+export default SignUpPage;

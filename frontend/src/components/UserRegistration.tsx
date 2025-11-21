@@ -1,9 +1,9 @@
-import { useState, type FormEvent } from "react";
+import { useState, FormEvent } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { UserService } from "../services/userService";
 
-const UserRegistration=()=> {
+function UserRegistration() {
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -30,16 +30,14 @@ const UserRegistration=()=> {
         clerkId: user.id,
         name,
         email: user.emailAddresses[0].emailAddress,
-        phone,
+        phone: `+91${phone}`,
       });
 
       navigate("/dashboard/user");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(
-        err.response?.data?.error ||
-          "Registration failed. Please try again."
-      );
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -68,7 +66,7 @@ const UserRegistration=()=> {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/2 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/5 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="Enter your full name"
               />
             </div>
@@ -78,7 +76,7 @@ const UserRegistration=()=> {
                 Phone Number (India) *
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 border border-r-0 border-white/8 bg-white/3 text-white/80 rounded-l-lg">
+                <span className="inline-flex items-center px-3 border border-r-0 border-white/8 bg-white/5 text-white/80 rounded-l-lg">
                   +91
                 </span>
                 <input
@@ -86,15 +84,13 @@ const UserRegistration=()=> {
                   required
                   pattern="[0-9]{10}"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-white/8 rounded-r-lg bg-white/2 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 px-4 py-3 border border-white/8 rounded-r-lg bg-white/5 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="9876543210"
                   maxLength={10}
                 />
               </div>
-              <p className="text-xs text-white/60 mt-1">
-                Enter 10 digit mobile number
-              </p>
+              <p className="text-xs text-white/60 mt-1">Enter 10 digit mobile number</p>
             </div>
 
             {error && (
@@ -115,12 +111,12 @@ const UserRegistration=()=> {
 
         <div className="mt-6 text-center text-sm text-white/60">
           By continuing you agree to our{" "}
-          <span className="text-white/90">Terms</span> and{" "}
-          <span className="text-white/90">Privacy Policy</span>.
+          <span className="text-white/90 cursor-pointer hover:underline">Terms</span> and{" "}
+          <span className="text-white/90 cursor-pointer hover:underline">Privacy Policy</span>.
         </div>
       </div>
     </div>
   );
 }
 
-export default UserRegistration
+export default UserRegistration;

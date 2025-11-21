@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 import { DriverService } from "../services/driverService";
 
-  const DriverRegistration=()=> {
+function DriverRegistration() {
   const { user } = useUser();
   const navigate = useNavigate();
 
@@ -22,13 +22,14 @@ import { DriverService } from "../services/driverService";
     );
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setLicenseFile(e.target.files[0]);
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      setLicenseFile(files[0]);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     if (!licenseFile) {
@@ -44,17 +45,16 @@ import { DriverService } from "../services/driverService";
       formData.append("clerkId", user.id);
       formData.append("name", name);
       formData.append("email", user.emailAddresses[0].emailAddress);
-      formData.append("phone", phone);
+      formData.append("phone", `+91${phone}`);
       formData.append("licenseNo", licenseNo);
       formData.append("license", licenseFile);
 
       await DriverService.register(formData);
       navigate("/dashboard/driver");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      setError(
-        err.response?.data?.error || "Registration failed. Please try again."
-      );
+      const errorMessage = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ import { DriverService } from "../services/driverService";
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/2 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/5 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="Enter your full name"
               />
             </div>
@@ -97,7 +97,7 @@ import { DriverService } from "../services/driverService";
                 Phone Number (India) *
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-3 border border-r-0 border-white/8 bg-white/3 text-white/80 rounded-l-lg">
+                <span className="inline-flex items-center px-3 border border-r-0 border-white/8 bg-white/5 text-white/80 rounded-l-lg">
                   +91
                 </span>
                 <input
@@ -105,8 +105,8 @@ import { DriverService } from "../services/driverService";
                   required
                   pattern="[0-9]{10}"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="flex-1 px-4 py-3 border border-white/8 rounded-r-lg bg-white/2 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                  className="flex-1 px-4 py-3 border border-white/8 rounded-r-lg bg-white/5 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="9876543210"
                   maxLength={10}
                 />
@@ -124,7 +124,7 @@ import { DriverService } from "../services/driverService";
                 required
                 value={licenseNo}
                 onChange={(e) => setLicenseNo(e.target.value.toUpperCase())}
-                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/2 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-full px-4 py-3 border border-white/8 rounded-lg bg-white/5 placeholder-white/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
                 placeholder="DL-1234567890123"
               />
               <p className="text-xs text-white/60 mt-1">
@@ -137,8 +137,7 @@ import { DriverService } from "../services/driverService";
               <label className="block text-sm font-medium text-white/90 mb-2">
                 Upload License Document *
               </label>
-
-              <label className="w-full flex items-center gap-4 px-4 py-3 bg-white/3 border border-white/8 rounded-lg cursor-pointer hover:bg-white/5 transition">
+              <label className="w-full flex items-center gap-4 px-4 py-3 bg-white/5 border border-white/8 rounded-lg cursor-pointer hover:bg-white/10 transition">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-6 w-6 text-white/90"
@@ -150,7 +149,7 @@ import { DriverService } from "../services/driverService";
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M7 16v-4a4 4 0 018 0v4m-5 4h6"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
                   />
                 </svg>
                 <span className="text-sm text-white/90">
@@ -158,15 +157,13 @@ import { DriverService } from "../services/driverService";
                 </span>
                 <input
                   type="file"
-                  required
                   accept="image/*,.pdf"
                   onChange={handleFileChange}
                   className="hidden"
                 />
               </label>
-
               <p className="text-xs text-white/60 mt-1">
-                Upload clear image or PDF of your license
+                Upload clear image or PDF of your license (max 5MB)
               </p>
             </div>
 
@@ -190,12 +187,12 @@ import { DriverService } from "../services/driverService";
 
         <div className="mt-6 text-center text-sm text-white/60">
           By continuing you agree to our{" "}
-          <span className="text-white/90">Terms</span> and{" "}
-          <span className="text-white/90">Privacy Policy</span>.
+          <span className="text-white/90 cursor-pointer hover:underline">Terms</span> and{" "}
+          <span className="text-white/90 cursor-pointer hover:underline">Privacy Policy</span>.
         </div>
       </div>
     </div>
   );
 }
 
-export default DriverRegistration
+export default DriverRegistration;

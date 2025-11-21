@@ -1,39 +1,46 @@
-import React, { useEffect, type ReactNode } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ClerkProvider, SignedIn, SignedOut, useAuth, useUser } from '@clerk/clerk-react';
-import LandingPageWrapper from './components/LandingPage';
-import SignUpPage from './components/SignUpPage';
-import SignInPage from './components/SignInPage';
-import UserTypePageWrapper from './components/UserType';
-import UserRegistration from './components/UserRegistration';
-import DriverRegistration from './components/DriverRegistration';
-import UserDashboard from './components/UserDashboard';
-import DriverDashboard from './components/DriverDashboard';
-import ApiConfig from './config/api';
+import { useEffect, ReactNode } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ClerkProvider, SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-react";
+import { setAuthToken } from "./config/api";
 
-const ProtectedRoute=({ children }: { children: ReactNode }) => {
+// Page Components
+import LandingPage from "./components/LandingPage";
+import SignUpPage from "./components/SignUpPage";
+import SignInPage from "./components/SignInPage";
+import UserTypePage from "./components/UserType";
+import UserRegistration from "./components/UserRegistration";
+import DriverRegistration from "./components/DriverRegistration";
+import UserDashboard from "./components/UserDashboard";
+import DriverDashboard from "./components/DriverDashboard";
+
+// Loading Component
+function LoadingScreen() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-[linear-gradient(180deg,#0b1020_0%,#07102a_100%)]">
+      <div className="text-white/80 text-xl">Loading...</div>
+    </div>
+  );
+}
+
+// Protected Route Wrapper
+function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn, getToken } = useAuth();
 
   useEffect(() => {
-  if (!isSignedIn) return;
+    if (!isSignedIn) return;
 
-  async function loadToken() {
-    const token = await getToken();
-    if (token) {
-      ApiConfig.setAuthToken(token);
+    async function loadToken() {
+      const token = await getToken();
+      if (token) {
+        setAuthToken(token);
+      }
     }
-  }
 
-  loadToken();
-  }, [isSignedIn]);
-
+    loadToken();
+  }, [isSignedIn, getToken]);
 
   if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!isSignedIn) {
@@ -43,17 +50,16 @@ const ProtectedRoute=({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 }
 
-const DashboardRouter=()=> {
+// Dashboard Router - Routes to correct dashboard based on user type
+function DashboardRouter() {
   const { user, isLoaded } = useUser();
 
   if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
-  const userType = user?.publicMetadata?.userType as string | undefined;
+
+  // Check both publicMetadata (set by backend) and unsafeMetadata (set by client)
+  const userType = (user?.publicMetadata?.userType || user?.unsafeMetadata?.userType) as string | undefined;
 
   if (!userType) {
     return <Navigate to="/user-type" replace />;
@@ -61,20 +67,25 @@ const DashboardRouter=()=> {
 
   if (userType === "user") {
     return <UserDashboard />;
-  } else if (userType === "driver") {
+  }
+
+  if (userType === "driver") {
     return <DriverDashboard />;
   }
+
   return <Navigate to="/user-type" replace />;
 }
 
-const App = () => {
+// Main App Component
+function App() {
   const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
   if (!clerkPubKey) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-red-600 text-xl">
-          Missing Clerk Publishable Key.
+      <div className="flex items-center justify-center min-h-screen bg-red-900/20">
+        <div className="text-red-400 text-xl text-center p-4">
+          <p className="font-bold">Configuration Error</p>
+          <p className="text-sm mt-2">Missing VITE_CLERK_PUBLISHABLE_KEY environment variable</p>
         </div>
       </div>
     );
@@ -84,9 +95,10 @@ const App = () => {
     <ClerkProvider publishableKey={clerkPubKey}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPageWrapper />} />
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
 
-          {/* Sign Up */}
+          {/* Auth Routes */}
           <Route
             path="/sign-up/*"
             element={
@@ -101,7 +113,6 @@ const App = () => {
             }
           />
 
-          {/* Sign In */}
           <Route
             path="/sign-in/*"
             element={
@@ -116,17 +127,16 @@ const App = () => {
             }
           />
 
-          {/* User Type */}
+          {/* Protected Routes */}
           <Route
             path="/user-type"
             element={
               <ProtectedRoute>
-                <UserTypePageWrapper />
+                <UserTypePage />
               </ProtectedRoute>
             }
           />
 
-          {/* Register User */}
           <Route
             path="/register/user"
             element={
@@ -136,7 +146,6 @@ const App = () => {
             }
           />
 
-          {/* Register Driver */}
           <Route
             path="/register/driver"
             element={
@@ -146,7 +155,6 @@ const App = () => {
             }
           />
 
-          {/* Dashboard */}
           <Route
             path="/dashboard"
             element={
@@ -156,7 +164,6 @@ const App = () => {
             }
           />
 
-          {/* User Dashboard */}
           <Route
             path="/dashboard/user"
             element={
@@ -166,7 +173,6 @@ const App = () => {
             }
           />
 
-          {/* Driver Dashboard */}
           <Route
             path="/dashboard/driver"
             element={
@@ -176,11 +182,12 @@ const App = () => {
             }
           />
 
+          {/* Catch-all Route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </ClerkProvider>
   );
-};
+}
 
 export default App;
